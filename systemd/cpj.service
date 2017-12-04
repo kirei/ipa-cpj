@@ -1,0 +1,7 @@
+[Unit]
+Description=CPJ service
+Documentation= man:systemd.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/cpj/bin/cpj.sh

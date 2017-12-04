@@ -1,0 +1,9 @@
+[Unit]
+Description=CPJ path monitor
+Documentation= man:systemd.path
+
+[Path]
+PathModified=/var/lib/docker/containers
+
+[Install]
+WantedBy=multi-user.target
