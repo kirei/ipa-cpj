@@ -1,6 +1,6 @@
 [Unit]
-Description=CPJ path monitor
-Documentation= man:systemd.path
+Description=Container PKI Janitor path monitor
+Documentation=man:systemd.path
 
 [Path]
 PathModified=/var/lib/docker/containers

@@ -1,6 +1,6 @@
 [Unit]
-Description=CPJ service
-Documentation= man:systemd.service
+Description=Container PKI Janitor service
+Documentation=man:systemd.service
 
 [Service]
 Type=oneshot
