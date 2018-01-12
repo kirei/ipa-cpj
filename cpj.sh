@@ -62,7 +62,7 @@ function install_cert() {
   local docker_id=$1
 
   if [ -f ${HOST_CERTDIR}/${hostname}.crt -a -f ${HOST_CERTDIR}/${hostname}.key ]; then
-    docker exec mkdir ${DOCKER_DESTDIR}
+    docker exec ${docker_id} mkdir ${DOCKER_DESTDIR}
     docker cp ${HOST_CERTDIR}/${docker_id}.crt ${docker_id}:${DOCKER_DESTDIR}/host.crt && \
     docker cp ${HOST_CERTDIR}/${docker_id}.key ${docker_id}:${DOCKER_DESTDIR}/host.key && \
     touch ${HOST_CERTDIR}/${docker_id}.installed
@@ -78,11 +78,11 @@ function process_new_containers() {
 
     echo "Processing certs for docker_id $container_dockerid ($container_ipaddress, ${container_fqdn})"
 
-    if [ ! -f  ${HOST_CERTDIR}/${container_dockerid}.crt ]; then
-      echo "request_cert $container_dockerid ${container_fqdn} ${container_ipaddress}"
+    if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt ]; then
+      request_cert $container_dockerid ${container_fqdn} ${container_ipaddress}
     else
       if [ ! -f  ${HOST_CERTDIR}/${container_dockerid}.installed ]; then
-        echo "install_cert ${container_dockerid}"
+        install_cert ${container_dockerid}
       fi
     fi
   done
@@ -95,7 +95,7 @@ function process_removed_containers() {
     if [ $? -eq 0 ]; then
       # container is no more, revoke certificate
       container_fqdn=`openssl x509 -subject -noout -in ${HOST_CERTDIR}/${container_dockerid}.crt | sed 's/.* CN = //'`
-      echo "revoke_cert $container_dockerid $container_fqdn"
+      revoke_cert $container_dockerid $container_fqdn
     fi
   done
 }
