@@ -42,7 +42,7 @@ function request_cert() {
 
   ipa-getcert request \
     -I ${docker_id} \
-    -C $0 install ${docker_id} \
+    -C "$0 install ${docker_id}" \
     -k ${HOST_CERTDIR}/${docker_id}.key \
     -f ${HOST_CERTDIR}/${docker_id}.crt \
     -N CN=${hostname} \
