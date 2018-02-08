@@ -70,10 +70,13 @@ function install_cert() {
 }
 
 function process_new_containers() {
-  for container_dockerid in `docker ps -a --format '{{.ID}}'`; do
+  for container_dockerid in `docker ps --format '{{.ID}}'`; do
     container_ipaddress=`docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_dockerid`
     container_hostname=`docker inspect --format='{{.Config.Hostname}}' $container_dockerid`
     container_domainname=`docker inspect --format='{{.Config.Domainname}}' $container_dockerid`
+    if [ -z "${container_domainname}" ]; then
+       container_domainname=`hostname --domain`
+    fi
     container_fqdn="${container_hostname}.${container_domainname}"
 
     echo "Processing certs for docker_id $container_dockerid ($container_ipaddress, ${container_fqdn})"
