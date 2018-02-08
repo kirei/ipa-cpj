@@ -30,50 +30,51 @@
 HOST_CERTDIR=/etc/pki/cpj
 DOCKER_DESTDIR=/etc/pki
 DOCKER_CONTAINER_DIR=/var/lib/docker/containers
-
+HOSTNAME=`hostname`
 
 function request_cert() {
-  local docker_id=$1
-  local hostname=$2
-  local ip_address=$3
+  local container_dockerid=$1
+  local container_fqdn=$2
+  local container_ipaddress=$3
 
-  ipa host-add ${hostname} --ip-address=${ip_address}
-  ipa host-add-managedby ${hostname} --hosts=`hostname`
+  ipa host-add ${container_fqdn} --ip-address=${container_ipaddress} --no-reverse --desc "Container at $HOSTNAME"
+  ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
 
   ipa-getcert request \
-    -I ${docker_id} \
-    -C "$0 install ${docker_id}" \
-    -k ${HOST_CERTDIR}/${docker_id}.key \
-    -f ${HOST_CERTDIR}/${docker_id}.crt \
-    -N CN=${hostname} \
-    -D ${hostname} \
-    -K HOST/${hostname}
+    -I ${container_dockerid} \
+    -C "$0 install ${container_dockerid}" \
+    -k ${HOST_CERTDIR}/${container_dockerid}.key \
+    -f ${HOST_CERTDIR}/${container_dockerid}.crt \
+    -N CN=${container_fqdn} \
+    -D ${container_fqdn} \
+    -K HOST/${container_fqdn}
 }
 
 function revoke_cert() {
-  local docker_id=$1
-  local hostname=$2
+  local container_dockerid=$1
+  local container_fqdn=$2
 
-  ipa-getcert stop-tracking -i ${docker_id}
-  ipa host-del ${hostname}
+  ipa-getcert stop-tracking -i ${container_dockerid}
+  ipa host-del ${container_fqdn}
 }
 
 function install_cert() {
-  local docker_id=$1
+  local container_dockerid=$1
 
   if [ -f ${HOST_CERTDIR}/${hostname}.crt -a -f ${HOST_CERTDIR}/${hostname}.key ]; then
-    docker exec ${docker_id} mkdir ${DOCKER_DESTDIR}
-    docker cp ${HOST_CERTDIR}/${docker_id}.crt ${docker_id}:${DOCKER_DESTDIR}/host.crt && \
-    docker cp ${HOST_CERTDIR}/${docker_id}.key ${docker_id}:${DOCKER_DESTDIR}/host.key && \
-    touch ${HOST_CERTDIR}/${docker_id}.installed
+    docker exec ${container_dockerid} mkdir ${DOCKER_DESTDIR}
+    docker cp ${HOST_CERTDIR}/${container_dockerid}.crt ${container_dockerid}:${DOCKER_DESTDIR}/host.crt && \
+    docker cp ${HOST_CERTDIR}/${container_dockerid}.key ${container_dockerid}:${DOCKER_DESTDIR}/host.key && \
+    touch ${HOST_CERTDIR}/${container_dockerid}.installed
   fi
 }
 
 function process_new_containers() {
   for container_dockerid in `docker ps --format '{{.ID}}'`; do
-    container_ipaddress=`docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_dockerid`
-    container_hostname=`docker inspect --format='{{.Config.Hostname}}' $container_dockerid`
-    container_domainname=`docker inspect --format='{{.Config.Domainname}}' $container_dockerid`
+    local container_ipaddress=`docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_dockerid`
+    local container_hostname=`docker inspect --format='{{.Config.Hostname}}' $container_dockerid`
+    local container_domainname=`docker inspect --format='{{.Config.Domainname}}' $container_dockerid`
+
     if [ -z "${container_domainname}" ]; then
        container_domainname=`hostname --domain`
     fi
