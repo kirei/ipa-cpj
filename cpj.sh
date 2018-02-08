@@ -74,11 +74,10 @@ function process_new_containers() {
     local container_ipaddress=`docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_dockerid`
     local container_hostname=`docker inspect --format='{{.Config.Hostname}}' $container_dockerid`
     local container_domainname=`docker inspect --format='{{.Config.Domainname}}' $container_dockerid`
-
     if [ -z "${container_domainname}" ]; then
-       container_domainname=`hostname --domain`
+      container_domainname=`hostname --domain`
     fi
-    container_fqdn="${container_hostname}.${container_domainname}"
+    local container_fqdn="${container_hostname}.${container_domainname}"
 
     echo "Processing certs for docker_id $container_dockerid ($container_ipaddress, ${container_fqdn})"
 
