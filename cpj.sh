@@ -97,6 +97,16 @@ function process_new_containers() {
   done
 }
 
+function resubmit_certs() {
+  for container_keyfile in `ls -1 ${HOST_CERTDIR}/*.key`; do
+    container_dockerid=`basename ${container_keyfile} .key`
+    if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt ]; then
+      # initial cert request failed, resubmit
+      ipa-getcert resubmit -i $container_dockerid
+    fi
+  done
+}
+
 function process_removed_containers() {
   for container_certfile in `ls -1 ${HOST_CERTDIR}/*.crt`; do
     container_dockerid=`basename ${container_certfile} .crt`
@@ -118,6 +128,8 @@ case $1 in
     ;;
   install)
     install_cert $2
+  resubmit)
+    resubmit_certs
     ;;
   *)
     echo "Invalid mode of operation, usage: $0 [scan|install]"
