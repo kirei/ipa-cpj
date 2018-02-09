@@ -55,6 +55,10 @@ function revoke_cert() {
   local container_fqdn=$2
 
   ipa-getcert stop-tracking -i ${container_dockerid}
+
+  rm ${HOST_CERTDIR}/${container_dockerid}.crt
+  rm ${HOST_CERTDIR}/${container_dockerid}.key
+
   if [ -n "${container_fqdn}" ]; then
     ipa host-del ${container_fqdn}
   fi
@@ -86,7 +90,7 @@ function process_new_containers() {
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt ]; then
       request_cert $container_dockerid ${container_fqdn} ${container_ipaddress}
     else
-      if [ ! -f  ${HOST_CERTDIR}/${container_dockerid}.installed ]; then
+      if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.installed ]; then
         install_cert ${container_dockerid}
       fi
     fi
