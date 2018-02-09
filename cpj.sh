@@ -32,6 +32,7 @@ DOCKER_DESTDIR=/etc/pki
 DOCKER_CONTAINER_DIR=/var/lib/docker/containers
 DOCKER_SUBDOMAIN=containers.
 HOSTNAME=`hostname`
+GETCERT_DELAY=10
 
 function add_principal() {
   local container_fqdn=$1
@@ -106,6 +107,7 @@ function process_new_containers() {
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt -a -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       echo "Requesting cert for docker_id $container_dockerid (${container_fqdn})"
       request_cert $container_fqdn $container_dockerid 
+      sleep $GETCERT_DELAY
     fi
   done
 }
@@ -128,6 +130,7 @@ function resubmit_certs() {
       # getcert status 3 == unreachable CA
       if [ $? -eq 3 ]; then
         ipa-getcert resubmit -i $container_dockerid
+        sleep $GETCERT_DELAY
       fi
     fi
   done
@@ -151,7 +154,6 @@ case $1 in
     kinit -k -t /etc/krb5.keytab
     process_new_containers
     process_removed_containers
-    sleep 10
     resubmit_certs
     ;;
   getcert_install_callback)
