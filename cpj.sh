@@ -87,9 +87,8 @@ function process_new_containers() {
     fi
     local container_fqdn="${container_hostname}.${container_domainname}"
 
-    echo "Adding principal for docker_id $container_dockerid (${container_fqdn})"
-
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
+      echo "Adding principal for docker_id $container_dockerid (${container_fqdn})"
       add_principal $container_fqdn
       touch ${HOST_CERTDIR}/${container_dockerid}.principal
     fi
@@ -103,9 +102,8 @@ function process_new_containers() {
     fi
     local container_fqdn="${container_hostname}.${container_domainname}"
 
-    echo "Requesting cert for docker_id $container_dockerid (${container_fqdn})"
-
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt -a -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
+      echo "Requesting cert for docker_id $container_dockerid (${container_fqdn})"
       request_cert $container_fqdn $container_dockerid 
     fi
   done
@@ -114,6 +112,7 @@ function process_new_containers() {
 function install_pending_certs() {
   for container_dockerid in `docker ps --format '{{.ID}}'`; do
     if [ -f ${HOST_CERTDIR}/${container_dockerid}.crt -a ! -f ${HOST_CERTDIR}/${container_dockerid}.installed ]; then
+      echo "Installing cert for docker_id $container_dockerid"
       install_cert $container_dockerid
     fi
   done
