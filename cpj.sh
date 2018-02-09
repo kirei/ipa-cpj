@@ -48,7 +48,7 @@ function request_cert() {
 
   ipa-getcert request \
     -I ${container_dockerid} \
-    -C "$0 install ${container_dockerid}" \
+    -C "$0 getcert_install_callback ${container_dockerid}" \
     -k ${HOST_CERTDIR}/${container_dockerid}.key \
     -f ${HOST_CERTDIR}/${container_dockerid}.crt \
     -N CN=${container_fqdn} \
@@ -153,11 +153,12 @@ case $1 in
     process_removed_containers
     sleep 10
     resubmit_certs
-    sleep 10
-    install_pending_certs
+    ;;
+  getcert_install_callback)
+    install_cert $2
     ;;
   install)
-    install_cert $2
+    install_pending_certs
     ;;
   resubmit)
     resubmit_certs
