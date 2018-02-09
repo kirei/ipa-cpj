@@ -61,7 +61,7 @@ function revoke_cert() {
 function install_cert() {
   local container_dockerid=$1
 
-  if [ -f ${HOST_CERTDIR}/${hostname}.crt -a -f ${HOST_CERTDIR}/${hostname}.key ]; then
+  if [ -f ${HOST_CERTDIR}/${container_dockerid}.crt -a -f ${HOST_CERTDIR}/${container_dockerid}.key ]; then
     docker exec ${container_dockerid} mkdir ${DOCKER_DESTDIR}
     docker cp ${HOST_CERTDIR}/${container_dockerid}.crt ${container_dockerid}:${DOCKER_DESTDIR}/host.crt && \
     docker cp ${HOST_CERTDIR}/${container_dockerid}.key ${container_dockerid}:${DOCKER_DESTDIR}/host.key && \
