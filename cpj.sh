@@ -35,9 +35,11 @@ HOSTNAME=`hostname`
 
 function add_principal() {
   local container_fqdn=$1
+  local container_dockerid=$2
 
   ipa host-add ${container_fqdn} --force --desc "Container at $HOSTNAME"
   ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
+  touch ${HOST_CERTDIR}/${container_dockerid}.principal
 }
 
 function request_cert() {
@@ -89,8 +91,7 @@ function process_new_containers() {
 
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       echo "Adding principal for docker_id $container_dockerid (${container_fqdn})"
-      add_principal $container_fqdn
-      touch ${HOST_CERTDIR}/${container_dockerid}.principal
+      add_principal $container_fqdn $container_dockerid
     fi
   done
 
