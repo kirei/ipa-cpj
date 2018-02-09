@@ -87,15 +87,34 @@ function process_new_containers() {
     fi
     local container_fqdn="${container_hostname}.${container_domainname}"
 
-    echo "Processing certs for docker_id $container_dockerid (${container_fqdn})"
+    echo "Adding principal for docker_id $container_dockerid (${container_fqdn})"
 
-    if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt ]; then
+    if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       add_principal $container_fqdn
+      touch ${HOST_CERTDIR}/${container_dockerid}.principal
+    fi
+  done
+
+  for container_dockerid in `docker ps --format '{{.ID}}'`; do
+    local container_hostname=`docker inspect --format='{{.Config.Hostname}}' $container_dockerid`
+    local container_domainname=`docker inspect --format='{{.Config.Domainname}}' $container_dockerid`
+    if [ -z "${container_domainname}" ]; then
+      container_domainname=${DOCKER_SUBDOMAIN}`hostname --domain`
+    fi
+    local container_fqdn="${container_hostname}.${container_domainname}"
+
+    echo "Requesting cert for docker_id $container_dockerid (${container_fqdn})"
+
+    if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt -a -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       request_cert $container_fqdn $container_dockerid 
-    else
-      if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.installed ]; then
-        install_cert $container_dockerid
-      fi
+    fi
+  done
+}
+
+function install_pending_certs() {
+  for container_dockerid in `docker ps --format '{{.ID}}'`; do
+    if [ -f ${HOST_CERTDIR}/${container_dockerid}.crt -a ! -f ${HOST_CERTDIR}/${container_dockerid}.installed ]; then
+      install_cert $container_dockerid
     fi
   done
 }
@@ -103,7 +122,7 @@ function process_new_containers() {
 function resubmit_certs() {
   for container_keyfile in `ls -1 ${HOST_CERTDIR}/*.key`; do
     container_dockerid=`basename ${container_keyfile} .key`
-    if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt ]; then
+    if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt -a -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       # initial cert request failed, resubmit
       ipa-getcert resubmit -i $container_dockerid
     fi
@@ -130,6 +149,8 @@ case $1 in
     process_removed_containers
     sleep 10
     resubmit_certs
+    sleep 10
+    install_pending_certs
     ;;
   install)
     install_cert $2
