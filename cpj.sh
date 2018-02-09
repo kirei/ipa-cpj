@@ -123,7 +123,11 @@ function resubmit_certs() {
     container_dockerid=`basename ${container_keyfile} .key`
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt -a -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       # initial cert request failed, resubmit
-      ipa-getcert resubmit -i $container_dockerid
+      ipa-getcert status -i $container_dockerid
+      # getcert status 3 == unreachable CA
+      if [ $? -eq 3 ]; then
+        ipa-getcert resubmit -i $container_dockerid
+      fi
     fi
   done
 }
