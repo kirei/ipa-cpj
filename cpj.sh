@@ -125,6 +125,8 @@ case $1 in
     kinit -k -t /etc/krb5.keytab
     process_new_containers
     process_removed_containers
+    sleep 10
+    resubmit_certs
     ;;
   install)
     install_cert $2
