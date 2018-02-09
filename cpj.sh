@@ -62,7 +62,6 @@ function revoke_cert() {
   local container_fqdn=$2
 
   ipa-getcert stop-tracking -i ${container_dockerid}
-
   rm ${HOST_CERTDIR}/${container_dockerid}.*
 
   if [ -n "${container_fqdn}" ]; then
