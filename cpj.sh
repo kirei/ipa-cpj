@@ -119,7 +119,7 @@ function install_pending_certs() {
 }
 
 function resubmit_certs() {
-  for container_keyfile in `ls -1 ${HOST_CERTDIR}/*.key`; do
+  for container_keyfile in `find ${HOST_CERTDIR} -type f -name *.key`; do
     container_dockerid=`basename ${container_keyfile} .key`
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt -a -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       # initial cert request failed, resubmit
@@ -133,7 +133,7 @@ function resubmit_certs() {
 }
 
 function process_removed_containers() {
-  for container_certfile in `ls -1 ${HOST_CERTDIR}/*.crt`; do
+  for container_certfile in `find ${HOST_CERTDIR} -type f -name *.crt`; do
     container_dockerid=`basename ${container_certfile} .crt`
     docker ps -a --format '{{.ID}}' | grep -q $container_dockerid
     if [ $? -ne 0 ]; then
