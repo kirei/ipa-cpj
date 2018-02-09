@@ -30,6 +30,7 @@
 HOST_CERTDIR=/etc/pki/cpj
 DOCKER_DESTDIR=/etc/pki
 DOCKER_CONTAINER_DIR=/var/lib/docker/containers
+DOCKER_SUBDOMAIN=containers.
 HOSTNAME=`hostname`
 
 function request_cert() {
@@ -37,7 +38,7 @@ function request_cert() {
   local container_fqdn=$2
   local container_ipaddress=$3
 
-  ipa host-add ${container_fqdn} --ip-address=${container_ipaddress} --no-reverse --desc "Container at $HOSTNAME"
+  ipa host-add ${container_fqdn} --force --desc "Container at $HOSTNAME"
   ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
 
   ipa-getcert request \
@@ -80,7 +81,7 @@ function process_new_containers() {
     local container_hostname=`docker inspect --format='{{.Config.Hostname}}' $container_dockerid`
     local container_domainname=`docker inspect --format='{{.Config.Domainname}}' $container_dockerid`
     if [ -z "${container_domainname}" ]; then
-      container_domainname=`hostname --domain`
+      container_domainname=${DOCKER_SUBDOMAIN}`hostname --domain`
     fi
     local container_fqdn="${container_hostname}.${container_domainname}"
 
