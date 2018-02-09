@@ -94,15 +94,6 @@ function process_new_containers() {
       echo "Adding principal for docker_id $container_dockerid (${container_fqdn})"
       add_principal $container_fqdn $container_dockerid
     fi
-  done
-
-  for container_dockerid in `docker ps --format '{{.ID}}'`; do
-    local container_hostname=`docker inspect --format='{{.Config.Hostname}}' $container_dockerid`
-    local container_domainname=`docker inspect --format='{{.Config.Domainname}}' $container_dockerid`
-    if [ -z "${container_domainname}" ]; then
-      container_domainname=${DOCKER_SUBDOMAIN}`hostname --domain`
-    fi
-    local container_fqdn="${container_hostname}.${container_domainname}"
 
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt -a -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       echo "Requesting cert for docker_id $container_dockerid (${container_fqdn})"
