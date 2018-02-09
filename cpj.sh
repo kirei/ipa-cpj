@@ -33,13 +33,16 @@ DOCKER_CONTAINER_DIR=/var/lib/docker/containers
 DOCKER_SUBDOMAIN=containers.
 HOSTNAME=`hostname`
 
-function request_cert() {
-  local container_dockerid=$1
-  local container_fqdn=$2
-  local container_ipaddress=$3
+function add_principal() {
+  local container_fqdn=$1
 
   ipa host-add ${container_fqdn} --force --desc "Container at $HOSTNAME"
   ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
+}
+
+function request_cert() {
+  local container_fqdn=$1
+  local container_dockerid=$2
 
   ipa-getcert request \
     -I ${container_dockerid} \
@@ -77,7 +80,6 @@ function install_cert() {
 
 function process_new_containers() {
   for container_dockerid in `docker ps --format '{{.ID}}'`; do
-    local container_ipaddress=`docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container_dockerid`
     local container_hostname=`docker inspect --format='{{.Config.Hostname}}' $container_dockerid`
     local container_domainname=`docker inspect --format='{{.Config.Domainname}}' $container_dockerid`
     if [ -z "${container_domainname}" ]; then
@@ -85,13 +87,14 @@ function process_new_containers() {
     fi
     local container_fqdn="${container_hostname}.${container_domainname}"
 
-    echo "Processing certs for docker_id $container_dockerid ($container_ipaddress, ${container_fqdn})"
+    echo "Processing certs for docker_id $container_dockerid (${container_fqdn})"
 
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.crt ]; then
-      request_cert $container_dockerid ${container_fqdn} ${container_ipaddress}
+      add_principal $container_fqdn
+      request_cert $container_fqdn $container_dockerid 
     else
       if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.installed ]; then
-        install_cert ${container_dockerid}
+        install_cert $container_dockerid
       fi
     fi
   done
