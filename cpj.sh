@@ -55,7 +55,9 @@ function revoke_cert() {
   local container_fqdn=$2
 
   ipa-getcert stop-tracking -i ${container_dockerid}
-  ipa host-del ${container_fqdn}
+  if [ -n "${container_fqdn}" ]; then
+    ipa host-del ${container_fqdn}
+  fi
 }
 
 function install_cert() {
@@ -95,7 +97,7 @@ function process_removed_containers() {
   for container_certfile in `ls -1 ${HOST_CERTDIR}/*.crt`; do
     container_dockerid=`basename ${container_certfile} .crt`
     docker ps -a --format '{{.ID}}' | grep -q $container_dockerid
-    if [ $? -eq 0 ]; then
+    if [ $? -ne 0 ]; then
       # container is no more, revoke certificate
       container_fqdn=`openssl x509 -subject -noout -in ${HOST_CERTDIR}/${container_dockerid}.crt | sed 's/.* CN = //'`
       revoke_cert $container_dockerid $container_fqdn
@@ -111,7 +113,7 @@ case $1 in
     process_removed_containers
     ;;
   install)
-    install_cert $2	  
+    install_cert $2
     ;;
   *)
     echo "Invalid mode of operation, usage: $0 [scan|install]"
