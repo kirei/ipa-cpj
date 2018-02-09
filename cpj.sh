@@ -56,8 +56,7 @@ function revoke_cert() {
 
   ipa-getcert stop-tracking -i ${container_dockerid}
 
-  rm ${HOST_CERTDIR}/${container_dockerid}.crt
-  rm ${HOST_CERTDIR}/${container_dockerid}.key
+  rm ${HOST_CERTDIR}/${container_dockerid}.*
 
   if [ -n "${container_fqdn}" ]; then
     ipa host-del ${container_fqdn}
@@ -103,7 +102,7 @@ function process_removed_containers() {
     docker ps -a --format '{{.ID}}' | grep -q $container_dockerid
     if [ $? -ne 0 ]; then
       # container is no more, revoke certificate
-      container_fqdn=`openssl x509 -subject -noout -in ${HOST_CERTDIR}/${container_dockerid}.crt | sed 's/.* CN = //'`
+      container_fqdn=`openssl x509 -subject -noout -in ${HOST_CERTDIR}/${container_dockerid}.crt | sed 's,.*/CN=,,'`
       revoke_cert $container_dockerid $container_fqdn
     fi
   done
