@@ -128,6 +128,7 @@ case $1 in
     ;;
   install)
     install_cert $2
+    ;;
   resubmit)
     resubmit_certs
     ;;
