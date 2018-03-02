@@ -35,6 +35,15 @@ DOCKER_FQDN_PREFIX=docker-`hostname -s`-
 DOCKER_SUBDOMAIN=
 HOSTNAME=`hostname`
 GETCERT_DELAY=10
+SYSLOG_PROGNAME=ipa-cpj
+SYSLOG_FACILITY=user
+
+
+function syslog() {
+  local message=$1
+  local level=${2:-info}
+  logger -t ${SYSLOG_PROGNAME} -p ${SYSLOG_FACILITY}.${level} "${message}"
+}
 
 function add_principal() {
   local container_fqdn=$1
@@ -42,8 +51,11 @@ function add_principal() {
 
   ipa host-add ${container_fqdn} --force --desc "Container at $HOSTNAME"
   if [ $? -eq 0 ]; then
+    syslog info "Added host ${container_fqdn}"
     ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
     touch ${HOST_CERTDIR}/${container_dockerid}.principal
+  else
+    syslog error "Failed to add host ${container_fqdn}"
   fi
 }
 
@@ -59,6 +71,8 @@ function request_cert() {
     -N CN=${container_fqdn} \
     -D ${container_fqdn} \
     -K HOST/${container_fqdn}
+
+  syslog info "Requested certficate for ${container_dockerid} (${container_fqdn})"
 }
 
 function revoke_cert() {
@@ -70,6 +84,11 @@ function revoke_cert() {
 
   if [ -n "${container_fqdn}" ]; then
     ipa host-del ${container_fqdn}
+    if [ $? -eq 0 ]; then
+      syslog info "Deleted host ${container_fqdn}"
+    else
+      syslog error "Failed to delete host ${container_fqdn}"
+    fi
   fi
 }
 
@@ -81,6 +100,7 @@ function install_cert() {
     docker cp ${HOST_CERTDIR}/${container_dockerid}.crt ${container_dockerid}:${DOCKER_DESTDIR}/host.crt && \
     docker cp ${HOST_CERTDIR}/${container_dockerid}.key ${container_dockerid}:${DOCKER_DESTDIR}/host.key && \
     touch ${HOST_CERTDIR}/${container_dockerid}.installed
+    syslog info "Installed certificate for container ${container_dockerid}"
   fi
 }
 
@@ -144,6 +164,7 @@ function process_removed_containers() {
 
 case $1 in
   scan)
+    logger debug "Scanning for changes"
     test -d $HOST_CERTDIR || mkdir -p $HOST_CERTDIR
     kinit -k -t /etc/krb5.keytab
     process_new_containers
@@ -151,12 +172,15 @@ case $1 in
     resubmit_certs
     ;;
   getcert_install_callback)
+    logger debug "Callback for $2"
     install_cert $2
     ;;
   install)
+    logger debug "Install pending certificates"
     install_pending_certs
     ;;
   resubmit)
+    logger debug "Resubmit certificate requests"
     resubmit_certs
     ;;
   *)
