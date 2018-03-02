@@ -30,7 +30,9 @@
 HOST_CERTDIR=/etc/pki/cpj
 DOCKER_DESTDIR=/etc/pki
 DOCKER_CONTAINER_DIR=/var/lib/docker/containers
-DOCKER_SUBDOMAIN=containers.
+DOCKER_FQDN_PREFIX=docker-`hostname -s`-
+#DOCKER_SUBDOMAIN=containers.
+DOCKER_SUBDOMAIN=
 HOSTNAME=`hostname`
 GETCERT_DELAY=10
 
@@ -87,7 +89,7 @@ function process_new_containers() {
     if [ -z "${container_domainname}" ]; then
       container_domainname=${DOCKER_SUBDOMAIN}`hostname --domain`
     fi
-    local container_fqdn="${container_hostname}.${container_domainname}"
+    local container_fqdn="${DOCKER_FQDN_PREFIX}${container_hostname}.${container_domainname}"
 
     if [ ! -f ${HOST_CERTDIR}/${container_dockerid}.principal ]; then
       echo "Adding principal for docker_id $container_dockerid (${container_fqdn})"
