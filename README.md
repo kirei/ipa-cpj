@@ -28,4 +28,4 @@ This script is deployed on a Docker Container Host (e.g., _AWS Container Instanc
 
 ## Assign Roles
 
-   ipa role-add-member "Container Manager" --hosts=ipa3.dev.aws.iis.se
+    ipa role-add-member "Container Manager" --hosts=ipa3.dev.aws.iis.se
