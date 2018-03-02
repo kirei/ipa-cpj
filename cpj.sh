@@ -164,7 +164,7 @@ function process_removed_containers() {
 
 case $1 in
   scan)
-    logger debug "Scanning for changes"
+    syslog debug "Scanning for changes"
     test -d $HOST_CERTDIR || mkdir -p $HOST_CERTDIR
     kinit -k -t /etc/krb5.keytab
     process_new_containers
@@ -172,15 +172,15 @@ case $1 in
     resubmit_certs
     ;;
   getcert_install_callback)
-    logger debug "Callback for $2"
+    syslog debug "Callback for $2"
     install_cert $2
     ;;
   install)
-    logger debug "Install pending certificates"
+    syslog debug "Install pending certificates"
     install_pending_certs
     ;;
   resubmit)
-    logger debug "Resubmit certificate requests"
+    syslog debug "Resubmit certificate requests"
     resubmit_certs
     ;;
   *)
