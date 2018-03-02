@@ -81,6 +81,7 @@ function revoke_cert() {
 
   ipa-getcert stop-tracking -i ${container_dockerid}
   rm ${HOST_CERTDIR}/${container_dockerid}.*
+  syslog info "Stopped tracking ${container_dockerid}"
 
   if [ -n "${container_fqdn}" ]; then
     ipa host-del ${container_fqdn}
