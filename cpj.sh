@@ -40,8 +40,8 @@ SYSLOG_FACILITY=user
 
 
 function syslog() {
-  local message=$1
-  local level=${2:-info}
+  local level=$1
+  local message=$2
   logger -t ${SYSLOG_PROGNAME} -p ${SYSLOG_FACILITY}.${level} "${message}"
 }
 
