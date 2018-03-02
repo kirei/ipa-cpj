@@ -4,4 +4,4 @@ Documentation=man:systemd.service
 
 [Service]
 Type=oneshot
-ExecStart=/opt/cpj/bin/cpj.sh scan
+ExecStart=/usr/local/bin/cpj scan
