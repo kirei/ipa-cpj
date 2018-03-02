@@ -41,8 +41,10 @@ function add_principal() {
   local container_dockerid=$2
 
   ipa host-add ${container_fqdn} --force --desc "Container at $HOSTNAME"
-  ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
-  touch ${HOST_CERTDIR}/${container_dockerid}.principal
+  if [ $? -eq 0 ]; then
+    ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
+    touch ${HOST_CERTDIR}/${container_dockerid}.principal
+  fi
 }
 
 function request_cert() {
