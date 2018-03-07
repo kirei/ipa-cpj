@@ -17,6 +17,7 @@ This script is deployed on a Docker Container Host (e.g., _AWS Container Instanc
         --permission "System: Add Services" \
         --permission "System: Modify Services" \
         --permission "System: Remove Services" \
+        --permission "System: Read DNS Entries" \
         --permission "System: Add DNS Entries" \
         --permission "System: Read DNS Configuration" \
         --permission "System: Remove DNS Entries" \
