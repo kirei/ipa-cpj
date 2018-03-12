@@ -52,7 +52,7 @@ function add_principal() {
   ipa host-add ${container_fqdn} --force --desc "Container at $HOSTNAME"
   if [ $? -eq 0 ]; then
     syslog info "Added host ${container_fqdn}"
-    ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
+    #ipa host-add-managedby ${container_fqdn} --hosts=$HOSTNAME
     touch ${HOST_CERTDIR}/${container_dockerid}.principal
   else
     syslog error "Failed to add host ${container_fqdn}"
