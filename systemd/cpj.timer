@@ -3,7 +3,10 @@ Description=Container PKI Janitor timer
 Documentation=man:systemd.timer
 
 [Timer]
+# once every minute
 OnCalendar=*:0/1
+# once every 30 seconds
+OnCalendar=*:*:0/30
 
 [Install]
 WantedBy=multi-user.target
