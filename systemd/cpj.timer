@@ -1,0 +1,9 @@
+[Unit]
+Description=Container PKI Janitor timer
+Documentation=man:systemd.timer
+
+[Timer]
+OnCalendar=*:0/1
+
+[Install]
+WantedBy=multi-user.target
