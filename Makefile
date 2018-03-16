@@ -4,3 +4,5 @@ install:
 	install -m 444 systemd/cpj.timer /lib/systemd/system/cpj.timer
 	install -m 444 systemd/cpj.service /lib/systemd/system/cpj.service
 	systemctl daemon-reload
+	systemctl enable cpj.path
+	systemctl enable cpj.timer
